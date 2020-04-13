@@ -1,4 +1,4 @@
-package chat6;
+package chat7;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -135,6 +135,7 @@ public class MultiServer {
 						break;
 
 					System.out.println(name + " >> " + s);
+					//DB처리는 여기서!//클라이언트에게 Echo해준다.
 					sendAllMsg(name, s);
 				}
 			} catch (Exception e) {
