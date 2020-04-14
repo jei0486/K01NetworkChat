@@ -3,6 +3,8 @@ package chat6;
 import java.net.Socket;
 import java.util.Scanner;
 
+import chat7.Sender;
+
 public class MultiClient {
 
 	public static void main(String[] args) {
