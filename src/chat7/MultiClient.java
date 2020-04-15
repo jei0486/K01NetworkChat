@@ -5,7 +5,7 @@ import java.util.Scanner;
 
 public class MultiClient {
 
-	public static void main(String[] args) {
+	public static void main(String[] args) {//쓰레드
 
 		String s_name;
 

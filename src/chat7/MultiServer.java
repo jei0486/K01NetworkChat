@@ -105,14 +105,7 @@ public class MultiServer {
 				System.out.println("예외:" + e);
 			}
 		}
-
-//		public void conWhisper(String fname) {// 귓속말 고정 
-//			/*
-//			 1. ENTER 처리 : INDEX OF 처리 했을때 -1값이 나오면 엔터로 넘어간것
-//			   	엔터는 substring으로 ?
-//			 2. 문자( bye )를 입력하면 귓속말 고정이 해제 되고 다시 전체 채팅으로 넘어감
-//			    break ㄴㄴ
-//			 */
+//		public void toWhisper(String fname, String wmsg) {//귓속말 1회용
 //			// fname : 상대방이름 sname : 내이름 wmsg : 메세지
 //			// Map에 저장된 객체의 키값(이름)을 먼저 얻어온다.
 //			Iterator<String> it = clientMap.keySet().iterator();
@@ -126,7 +119,7 @@ public class MultiServer {
 //					PrintWriter it_out = (PrintWriter) clientMap.get(sname);// it.next()대신 sname을 넣어준다
 //					// 왜냐하면 it.next()는 쓸때마다 다음 값을 반환하기 때문에
 //					// it.next()를 두번 쓰면 안됨 !! sname 변수를 사용하여 값을 넣어준다.
-//					
+//
 //					if (fname.equals(sname)) {
 //						it_out.println(wmsg);
 //					}
@@ -135,42 +128,77 @@ public class MultiServer {
 //				}
 //			}
 //		}
-		
-		public void toWhisper(String fname, String wmsg) {//귓속말 1회용
-			// fname : 상대방이름 sname : 내이름 wmsg : 메세지
-			// Map에 저장된 객체의 키값(이름)을 먼저 얻어온다.
-			Iterator<String> it = clientMap.keySet().iterator();
+		public void toWhisper(String sendname,String msg) {// 귓속말 (1회용 & 고정) /to 대화명 대화내용
+			// 보내는 사람 : sendname //받는사람 : receivename
 
-			// 저장된 객체(클라이언트)의 갯수만큼 반복한다.
-			while (it.hasNext()) {
+			int start = msg.indexOf(" ");// 첫번째 blank// 시작값에 a를 넣으면 blank값이 들어감 그래서 a+1
+			int end = msg.indexOf(" ", start + 1);// 두번째 blank //a+1부터 " "을 찾아줘ㅠㅠ
+			Iterator<String> it;
+			if (end != -1) {// 귓속말 1회용
+				String receivename = msg.substring(start + 1, end);
+				String whisper = msg.substring(end);
+				it = clientMap.keySet().iterator();
+				while (it.hasNext()) {
+					try {
+						// 변수 comparename에 it.next()를 통해 가져온 이름을 저장한다.
+						String comparename = it.next();
+						// 각 클라이언트의 PrintWriter객체를 얻어온다.
+						PrintWriter it_out = (PrintWriter) clientMap.get(comparename);
+						// it.next()대신 comparename을 넣어준다
+						// 왜냐하면 it.next()는 쓸때마다 다음 값을 반환하기 때문에
+						// it.next()를 두번 쓰면 안됨 !! comparename 변수를 사용하여 값을 넣어준다.
+
+						if (receivename.equals(comparename)) {
+							new InsertQuery(receivename, "귓속말"+whisper).execute();
+							it_out.println(whisper);
+						}
+					} catch (Exception e) {
+						System.out.println("예외:" + e);
+					}
+				}
+			} else if (end == -1) {// 귓속말 고정
 				try {
-					// 변수 sname에 it.next()를 통해 가져온 이름을 저장한다.
-					String sname = it.next();
-					// 각 클라이언트의 PrintWriter객체를 얻어온다.
-					PrintWriter it_out = (PrintWriter) clientMap.get(sname);// it.next()대신 sname을 넣어준다
-					// 왜냐하면 it.next()는 쓸때마다 다음 값을 반환하기 때문에
-					// it.next()를 두번 쓰면 안됨 !! sname 변수를 사용하여 값을 넣어준다.
-
-					if (fname.equals(sname)) {
-						it_out.println(wmsg);
+					while (true) {
+						it = clientMap.keySet().iterator();
+						String whisper = in.readLine();
+						if(whisper.equalsIgnoreCase("x")) {
+							break;
+						}
+						while (it.hasNext()) {
+							String receivename = msg.substring(start + 1);
+							String comparename = it.next();
+							PrintWriter it_out = (PrintWriter) clientMap.get(comparename);
+							if (receivename.equals(comparename)) {
+								new InsertQuery(receivename, whisper).execute();
+								it_out.println(whisper);
+							}
+						}
 					}
 				} catch (Exception e) {
 					System.out.println("예외:" + e);
 				}
 			}
 		}
-
 		@Override
 		public void run() {
-
 			// 클라이언트로부터 전송된 "대화명"을 저장할 변수
 			String name = "";
 			// 메세지 저장용 변수
 			String s = "";
 
 			try {
-				// 클라이언트의 이름을 읽어와서 저장
-				name = in.readLine();
+				
+				while (true) {
+					// 클라이언트의 이름을 읽어와서 저장
+					name = in.readLine();
+					new InsertQuery(name).check();
+					//System.out.println(comparename);
+					break;
+				}
+				
+				
+				
+				
 				// 접속한 클라이언트에게 새로운 사용자의 입장을 알림.
 				// 접속자를 제외한 나머지 클라이언트만 입장메세지를 받는다.
 				sendAllMsg("", name + "님이 입장했습니다.");
@@ -189,50 +217,37 @@ public class MultiServer {
 					if (s == null) {
 						break;
 					}
-
 					// 명령어 찾기 : /를 통해서
 					if (s.charAt(0) == '/') {
-
 						int a = s.indexOf(" ");// 첫번째 blank
-						int b = s.indexOf(" ", a + 1);// 두번째 blank //a+1부터 " "을 찾아줘ㅠㅠ
 						
 						if (s.equalsIgnoreCase("/list")) {// 서버의 접속자 리스트 /list
 							Iterator<String> it = clientMap.keySet().iterator();
 							while (it.hasNext()) {
 								System.out.println("접속자리스트 :" + it.next());
 							}
-						} else if (s.substring(0, a).equals("/to")) {// 귓속말 /to 이름 내용
-
-							// 귓속말 => /to(a)대화명(b)대화내용
-
-							if (!(b==-1)) {
-								String fname = s.substring(a + 1, b);// 시작값에 a를 넣으면 blank값이 들어감 그래서 a+1
-								String wmsg = s.substring(b);
-								toWhisper(fname, wmsg);
-							}
-//								else {
-////								String fsname = s.substring(a + 1);
-//								conWhisper(fsname);
+						}
+						else if(a==-1) {
+							// /to 만 입력하고 enter쳤을때 null이 반복되는것을 막는 코드
+						}
+						else if (s.substring(0, a).equals("/to")) {// 귓속말 => /to(a)대화명(b)대화내용
+							
+							toWhisper(name,s);
+//							if (!(b==-1)) {//망한 코드
+//								String fname = s.substring(a + 1, b);// 시작값에 a를 넣으면 blank값이 들어감 그래서 a+1
+//								String wmsg = s.substring(b);
+//								toWhisper(fname, wmsg);//귓속말 1회용
 //							}
-							
-							
-//								if (!(wmsg.isEmpty())) {
-//									toWhisper(fname, wmsg);
-//								}else {
-//									conWhisper(fname, wmsg);
-//								}
-							
-									
-									
-							
-							// fname : s = in.readLine(); 에서 따온 대화명
-							// wmsg : s = in.readLine(); 에서 따온 대화메세지
+//								else {
+//								String fsname = s.substring(a + 1);
+//								conWhisper(fsname);//귓속말 고정
+//							}
 						}
 					} else {
 						System.out.println(name + " >> " + s);
 						// DB처리는 여기서!//클라이언트에게 Echo해준다.
-						// s = URLDecoder.decode(name,"UTF-8");// 인코딩문 때문에 s가 if문에 못들어감
-						new DataInput(name, s).execute();
+						// s = URLDecoder.decode(name,"UTF-8");// 인코딩문 때문에 s가 if문에 못들어감 밑으로 쭉 내렸음
+						new InsertQuery(name, s).execute();
 						sendAllMsg(name, s);
 					}
 				}

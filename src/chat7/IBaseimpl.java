@@ -53,5 +53,9 @@ public class IBaseimpl implements IBase{
 	@Override
 	public void execute() {}
 	@Override
-	public void executetwo() {}
+	public void check() {}
+	@Override
+	public String executetwo() {
+		return null;
+	}
 }
