@@ -53,7 +53,16 @@ public class IBaseimpl implements IBase{
 	@Override
 	public void execute() {}
 	@Override
-	public void check() {}
+	public boolean check() {
+		return true;
+	}
+	@Override
+	public boolean black() {
+		return false;
+	}
+	@Override
+	public void delete() {}
+	
 	@Override
 	public String executetwo() {
 		return null;

@@ -7,7 +7,9 @@ public interface IBase {
 	void connect(String user, String pass);
 	void execute();
 	String executetwo();
-	void check();
+	boolean black();
+	boolean check();
+	void delete();
 	void close();
 	String scanValues(String title);
 }

@@ -77,7 +77,7 @@ public class MultiServer {
 				 매개변수 name이 없는경우에는 메세지만 클라이언트로 전달한다.
 				 */
 				if (name.equals("")) {
-					it_out.println(msg);
+					it_out.println(msg);//시스템 메세지
 				} else {
 					it_out.println("[" + name + "]:" + msg);
 				}
@@ -131,8 +131,8 @@ public class MultiServer {
 		public void toWhisper(String sendname,String msg) {// 귓속말 (1회용 & 고정) /to 대화명 대화내용
 			// 보내는 사람 : sendname //받는사람 : receivename
 
-			int start = msg.indexOf(" ");// 첫번째 blank// 시작값에 a를 넣으면 blank값이 들어감 그래서 a+1
-			int end = msg.indexOf(" ", start + 1);// 두번째 blank //a+1부터 " "을 찾아줘ㅠㅠ
+			int start = msg.indexOf(" ");// 첫번째 blank
+			int end = msg.indexOf(" ", start + 1);// 두번째 blank 
 			Iterator<String> it;
 			if (end != -1) {// 귓속말 1회용
 				String receivename = msg.substring(start + 1, end);
@@ -149,8 +149,8 @@ public class MultiServer {
 						// it.next()를 두번 쓰면 안됨 !! comparename 변수를 사용하여 값을 넣어준다.
 
 						if (receivename.equals(comparename)) {
-							new InsertQuery(receivename, "귓속말"+whisper).execute();
-							it_out.println(whisper);
+							new Query(receivename, "##"+whisper).execute();
+							it_out.println(sendname+":"+whisper);
 						}
 					} catch (Exception e) {
 						System.out.println("예외:" + e);
@@ -169,8 +169,8 @@ public class MultiServer {
 							String comparename = it.next();
 							PrintWriter it_out = (PrintWriter) clientMap.get(comparename);
 							if (receivename.equals(comparename)) {
-								new InsertQuery(receivename, whisper).execute();
-								it_out.println(whisper);
+								new Query(receivename, "##"+whisper).execute();
+								it_out.println(sendname+":"+whisper);
 							}
 						}
 					}
@@ -178,26 +178,54 @@ public class MultiServer {
 					System.out.println("예외:" + e);
 				}
 			}
-		}
+		}////end of toWhisper
+		
+		public void blacklist(String sendname, String msg) {//blacklist 접속 거부
+			//System.out.println("진입1");
+			int start = msg.indexOf(" ");// 첫번째 blank
+			int end = msg.indexOf(" ", start + 1);// 두번째 blank 
+			Iterator<String> it;
+			if (end == -1) {
+				//System.out.println("진입2");
+				String blackname = msg.substring(start + 1);
+				it = clientMap.keySet().iterator();
+				while (it.hasNext()) {
+					try {
+						String comparename = it.next();
+						PrintWriter it_out = (PrintWriter) clientMap.get(comparename);
+						
+						if (blackname.equals(comparename)) {
+							new Query(blackname).black();
+							//it_out.println(sendname+"이"+blackname+"님을 블랙리스트 처리했습니다.");
+							sendAllMsg(sendname, blackname+"님을 블랙리스트 처리했습니다.");
+							out.println("블랙리스트처리");
+						}
+					} catch (Exception e) {
+						System.out.println("예외:" + e);
+					}
+				}
+			} else if (end != -1) { 
+				//null방지
+			}
+		}////end of blacklist
 		@Override
 		public void run() {
 			// 클라이언트로부터 전송된 "대화명"을 저장할 변수
 			String name = "";
 			// 메세지 저장용 변수
 			String s = "";
-
 			try {
-				
-				while (true) {
+				while (true) {//중복된 이름을 확인하는 무한루프
 					// 클라이언트의 이름을 읽어와서 저장
 					name = in.readLine();
-					new InsertQuery(name).check();
-					//System.out.println(comparename);
-					break;
+					boolean compare =  new Query(name).check();//compare에 check()값 저장
+					
+					if(compare==true) {//compare값이 true일때 무한루프 탈출
+						break;
+					}else {
+						out.println("접속할수 없는 이름입니다.");
+					}
 				}
-				
-				
-				
 				
 				// 접속한 클라이언트에게 새로운 사용자의 입장을 알림.
 				// 접속자를 제외한 나머지 클라이언트만 입장메세지를 받는다.
@@ -213,7 +241,6 @@ public class MultiServer {
 				// 입력한 메세지는 모든 클라이언트에게 Echo 된다.
 				while (in != null) {
 					s = in.readLine();
-
 					if (s == null) {
 						break;
 					}
@@ -243,11 +270,14 @@ public class MultiServer {
 //								conWhisper(fsname);//귓속말 고정
 //							}
 						}
+						else if(s.substring(0,a).equals("/blacklist")) {
+							blacklist(name, s);
+						}
 					} else {
 						System.out.println(name + " >> " + s);
 						// DB처리는 여기서!//클라이언트에게 Echo해준다.
 						// s = URLDecoder.decode(name,"UTF-8");// 인코딩문 때문에 s가 if문에 못들어감 밑으로 쭉 내렸음
-						new InsertQuery(name, s).execute();
+						new Query(name, s).execute();
 						sendAllMsg(name, s);
 					}
 				}
@@ -262,6 +292,7 @@ public class MultiServer {
 				sendAllMsg("", name + "님이 퇴장하셨습니다.");
 				// 퇴장하는 클라이언트의 쓰레드명을 보여준다.->
 				System.out.println(name + "퇴장");// <- thread명 메세지 삭제
+				new Query(name).delete();
 				System.out.println("현재 접속자 수는 " + clientMap.size() + "명 입니다.");
 
 				try {

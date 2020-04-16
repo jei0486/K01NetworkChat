@@ -5,12 +5,15 @@ import java.io.InputStreamReader;
 import java.net.Socket;
 import java.net.SocketException;
 
-public class Receiver extends Thread {
+public class Receiver extends Thread {//클라이언트
 
 	Socket socket;
 	BufferedReader in = null;
 
 	// Socket객체를 매개변수로 받는 생성자
+	public Receiver() {
+	}
+	
 	public Receiver(Socket socket) {
 		this.socket = socket;
 
@@ -33,7 +36,14 @@ public class Receiver extends Thread {
 		// 스트림을 통해 서버가 보낸 내용을 라인단위로 읽어온다.
 		while (in != null) {
 			try {
-				System.out.println(in.readLine());
+				String read = in.readLine();
+				
+				if(read.equals("블랙리스트처리")) {
+					System.exit(0);
+				}else {
+					System.out.println(read);
+				}
+				
 			} catch (SocketException ne) {
 				System.out.println("SocketException발생됨");
 				break;
@@ -52,4 +62,8 @@ public class Receiver extends Thread {
 			e.printStackTrace();
 		}
 	}
+	public void exit() {
+		System.exit(0);
+	}
+	
 }

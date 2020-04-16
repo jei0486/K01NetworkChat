@@ -5,7 +5,7 @@ import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.Scanner;
 
-public class Sender extends Thread {
+public class Sender extends Thread {//서버
 	Socket socket;
 	PrintWriter out = null;
 	String name;
