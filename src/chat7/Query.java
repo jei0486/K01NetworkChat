@@ -84,7 +84,7 @@ public class Query extends IBaseimpl{
 		}
 	}
 	@Override
-	public void delete() {
+	public void delete() {//채팅에서 나갈시 테이블에서 일반유저이름만 삭제 //블랙리스트는 남김
 		try {
 			//2.쿼리문 미리 준비
 			String query = "DELETE FROM username WHERE name = ? and blacklist is null";

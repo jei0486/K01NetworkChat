@@ -198,7 +198,8 @@ public class MultiServer {
 							new Query(blackname).black();
 							//it_out.println(sendname+"이"+blackname+"님을 블랙리스트 처리했습니다.");
 							sendAllMsg(sendname, blackname+"님을 블랙리스트 처리했습니다.");
-							out.println("블랙리스트처리");
+							//out.println("블랙리스트처리");
+							socket.close();
 						}
 					} catch (Exception e) {
 						System.out.println("예외:" + e);

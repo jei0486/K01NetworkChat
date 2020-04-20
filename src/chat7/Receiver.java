@@ -62,8 +62,8 @@ public class Receiver extends Thread {//클라이언트
 			e.printStackTrace();
 		}
 	}
-	public void exit() {
-		System.exit(0);
-	}
+//	public void exit() {망한코드
+//		System.exit(0);
+//	}
 	
 }
